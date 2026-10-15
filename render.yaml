@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: hrone-attendance-analytics-api
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: MONGO_URI
+        sync: false
+      - key: MONGO_DB
+        value: attendance_db
+      - key: LOG_LEVEL
+        value: INFO
