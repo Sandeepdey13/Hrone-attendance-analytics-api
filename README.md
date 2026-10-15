@@ -1,25 +1,45 @@
 # Employee Attendance & Analytics API
 
-FastAPI + PyMongo service implementing the HROne attendance contract. All application code lives in `app/main.py`.
+A FastAPI service for employee records, daily attendance, audited corrections, and MongoDB aggregation-based analytics. The API paths and response shapes follow the supplied OpenAPI contract.
 
-## Run locally
+## Requirements
+
+- Python 3.11 or newer
+- MongoDB 6.0 or newer
+
+## Local setup
+
+Start MongoDB and keep it running. For local MongoDB, the included environment example uses `127.0.0.1:27017`.
 
 ```bash
-python -m venv .venv
+python3 -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
-export MONGO_URI='mongodb://localhost:27017'
-export MONGO_DB='attendance_db'
-uvicorn app.main:app --port 8000
+python -m pip install -r requirements.txt
+cp .env.example .env
+uvicorn app.main:app --host 127.0.0.1 --port 8000
 ```
 
-MongoDB 6.0+ is required. `MONGO_URI` and `MONGO_DB` are read from the environment; a local `.env` can also be used. Indexes are created idempotently when the service starts and are retried when `/health` is called after MongoDB becomes available. The hiring evaluator seeds its own dataset. For local testing, the `sample_seed.py` and `sample_data/` files from the original candidate kit can be used privately; do not commit data dumps.
+Open the API documentation at `http://127.0.0.1:8000/docs`. The health endpoint checks MongoDB connectivity and returns `503` if the database is unavailable.
 
-## Main areas
+To use MongoDB Atlas instead, set `MONGO_URI` to your own connection string in the local `.env` file. Never commit `.env` or real credentials.
 
-- Employee creation and paginated employee listing
-- Race-safe punch-in / punch-out and audited regularization
-- MongoDB aggregation pipelines for monthly, department, leaderboard, and trend analytics
-- `GET /admin/explain/{endpoint}` for execution-statistics explain output
+## Tests
 
-Read `REVIEW.md` for starter defects and `DECISIONS.md` for the main design choices. Do not commit `.env`, credentials, or local virtual environments.
+With MongoDB running, install the development dependencies and run the tests from the project root:
+
+```bash
+python -m pip install -r requirements-dev.txt
+python -m pytest -v
+```
+
+The health test requires a reachable MongoDB instance. The tests cover selected validation, date helpers, work-hour calculation, and health behavior; they are not a substitute for testing every API operation against the evaluation dataset.
+
+## Main functionality
+
+- Employee creation and paginated listing
+- Punch-in and punch-out with attendance rules
+- Manual regularization with a recorded history
+- Monthly employee, department summary, late leaderboard, and department trend analytics using MongoDB aggregation pipelines
+- Explain output for supported query paths
+
+See `REVIEW.md` for issues found in the starter and `DECISIONS.md` for implementation choices. `DATA_MODEL.md` and `openapi.yaml` describe the model and API contract.
